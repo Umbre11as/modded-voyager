@@ -10,6 +10,7 @@
 #include <intrin.h>
 
 const UINT32 _gUefiDriverRevision = 0x200;
+extern CHAR8* gEfiCallerBaseName = "Bootloader";
 
 UINT32 GetCPUVendor()
 {

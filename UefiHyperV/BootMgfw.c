@@ -284,8 +284,8 @@ EFI_STATUS EFIAPI InstallBootMgfwHooks(EFI_HANDLE ImageHandle)
 static EFI_STATUS EFIAPI ArchStartBootApplicationHook(VOID* AppEntry, VOID* ImageBase, UINT32 ImageSize, UINT8 BootOption, VOID* ReturnArgs)
 {
 	DisableInlineHook(&BootMgfwShitHook);
-	PIMAGE_DOS_HEADER DosHeader = NULL;
-	PIMAGE_NT_HEADERS NtHeaders = NULL;
+	EFI_IMAGE_DOS_HEADER* DosHeader = NULL;
+	EFI_IMAGE_NT_HEADERS64* NtHeaders = NULL;
 	UINT8* codeSection = NULL;
 	UINT64 codeSize = 0;
 

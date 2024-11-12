@@ -14,11 +14,11 @@ UINT16 BuildNumber = 0;
 
 #define LDR_IS_DATAFILE(x)				(((UINTN)(x)) & (UINTN)1)
 #define LDR_DATAFILE_TO_VIEW(x)			((VOID*)(((UINTN)(x)) & ~(UINTN)1))
-#define IMAGE32(NtHeaders) ((NtHeaders)->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC)
-#define IMAGE64(NtHeaders) ((NtHeaders)->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
-#define HEADER_FIELD(NtHeaders, Field) (IMAGE64(NtHeaders) ? ((PIMAGE_NT_HEADERS64)(NtHeaders))->OptionalHeader.Field : ((PIMAGE_NT_HEADERS32)(NtHeaders))->OptionalHeader.Field)
+#define IMAGE32(NtHeaders) ((NtHeaders)->OptionalHeader.Magic == EFI_IMAGE_NT_OPTIONAL_HDR32_MAGIC)
+#define IMAGE64(NtHeaders) ((NtHeaders)->OptionalHeader.Magic == EFI_IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+#define HEADER_FIELD(NtHeaders, Field) (IMAGE64(NtHeaders) ? ((EFI_IMAGE_NT_HEADERS64*)(NtHeaders))->OptionalHeader.Field : ((EFI_IMAGE_NT_HEADERS32*)(NtHeaders))->OptionalHeader.Field)
 #define FIELD_OFFSET(Type, Field)	((INT32)(INTN)&(((Type *)0)->Field))
-#define IMAGE_FIRST_SECTION(NtHeaders) ((PIMAGE_SECTION_HEADER)((UINTN)(NtHeaders) + FIELD_OFFSET(IMAGE_NT_HEADERS64, OptionalHeader) + ((NtHeaders))->FileHeader.SizeOfOptionalHeader))
+#define IMAGE_FIRST_SECTION(NtHeaders) ((EFI_IMAGE_NT_HEADERS64*)((UINTN)(NtHeaders) + FIELD_OFFSET(EFI_IMAGE_NT_HEADERS64, OptionalHeader) + ((NtHeaders))->FileHeader.SizeOfOptionalHeader))
 #define MAKELANGID(Primary, Sub)	((((UINT16)(Sub)) << 10) | (UINT16)(Primary))
 #define LANG_NEUTRAL				0x00
 #define SUBLANG_NEUTRAL				0x00
@@ -122,20 +122,20 @@ STATIC BOOLEAN EFIAPI RtlIsCanonicalAddress(UINTN Address)
 	return (((Address & 0xFFFF800000000000) + 0x800000000000) & ~0x800000000000) == 0;
 }
 
-PIMAGE_NT_HEADERS EFIAPI RtlpImageNtHeaderEx(IN CONST VOID* Base, IN UINTN Size OPTIONAL)
+EFI_IMAGE_NT_HEADERS64* EFIAPI RtlpImageNtHeaderEx(IN CONST VOID* Base, IN UINTN Size OPTIONAL)
 {
 	CONST BOOLEAN RangeCheck = Size > 0;
-	if (RangeCheck && Size < sizeof(IMAGE_DOS_HEADER))
+	if (RangeCheck && Size < sizeof(EFI_IMAGE_DOS_HEADER))
 		return NULL;
 
-	if (((PIMAGE_DOS_HEADER)Base)->e_magic != EFI_IMAGE_DOS_SIGNATURE)
+	if (((EFI_IMAGE_DOS_HEADER*)Base)->e_magic != EFI_IMAGE_DOS_SIGNATURE)
 		return NULL;
 
-	CONST UINT32 e_lfanew = ((PIMAGE_DOS_HEADER)Base)->e_lfanew;
+	CONST UINT32 e_lfanew = ((EFI_IMAGE_DOS_HEADER*)Base)->e_lfanew;
 	if (RangeCheck && (e_lfanew >= Size || e_lfanew >= (MAX_UINT32 - sizeof(EFI_IMAGE_NT_SIGNATURE) - sizeof(EFI_IMAGE_FILE_HEADER)) || e_lfanew + sizeof(EFI_IMAGE_NT_SIGNATURE) + sizeof(EFI_IMAGE_FILE_HEADER) >= Size))
 		return NULL;
 
-	CONST PIMAGE_NT_HEADERS NtHeaders = (PIMAGE_NT_HEADERS)(((UINT8*)Base) + e_lfanew);
+	CONST EFI_IMAGE_NT_HEADERS64* NtHeaders = (EFI_IMAGE_NT_HEADERS64*)(((UINT8*)Base) + e_lfanew);
 	if (!RtlIsCanonicalAddress((UINTN)NtHeaders))
 		return NULL;
 
@@ -145,9 +145,9 @@ PIMAGE_NT_HEADERS EFIAPI RtlpImageNtHeaderEx(IN CONST VOID* Base, IN UINTN Size 
 	return NtHeaders;
 }
 
-UINT32 EFIAPI RvaToOffset(IN PIMAGE_NT_HEADERS NtHeaders, IN UINT32 Rva)
+UINT32 EFIAPI RvaToOffset(IN EFI_IMAGE_NT_HEADERS64* NtHeaders, IN UINT32 Rva)
 {
-	PIMAGE_SECTION_HEADER SectionHeaders = IMAGE_FIRST_SECTION(NtHeaders);
+	EFI_IMAGE_SECTION_HEADER* SectionHeaders = IMAGE_FIRST_SECTION(NtHeaders);
 	CONST UINT16 NumberOfSections = NtHeaders->FileHeader.NumberOfSections;
 	UINT32 Result = 0;
 	for (UINT16 i = 0; i < NumberOfSections; ++i)
@@ -170,14 +170,14 @@ VOID* EFIAPI RtlpImageDirectoryEntryToDataEx(IN CONST VOID* Base, IN BOOLEAN Map
 		MappedAsImage = FALSE;
 	}
 
-	CONST PIMAGE_NT_HEADERS NtHeaders = RtlpImageNtHeaderEx(Base, 0);
+	CONST EFI_IMAGE_NT_HEADERS64* NtHeaders = RtlpImageNtHeaderEx(Base, 0);
 	if (NtHeaders == NULL)
 		return NULL;
 
 	if (DirectoryEntry >= HEADER_FIELD(NtHeaders, NumberOfRvaAndSizes))
 		return NULL;
 
-	CONST PIMAGE_DATA_DIRECTORY Directories = HEADER_FIELD(NtHeaders, DataDirectory);
+	CONST EFI_IMAGE_DATA_DIRECTORY* Directories = HEADER_FIELD(NtHeaders, DataDirectory);
 	CONST UINT32 Rva = Directories[DirectoryEntry].VirtualAddress;
 	if (Rva == 0)
 		return NULL;
@@ -299,7 +299,7 @@ INPUT_FILETYPE EFIAPI GetInputFileType(IN CONST UINT8* ImageBase, IN UINTN Image
 	if (*(UINT16*)ImageBase == 0xD5E9)
 		return Bootmgr;
 
-	CONST PIMAGE_NT_HEADERS NtHeaders = RtlpImageNtHeaderEx(ImageBase, ImageSize);
+	CONST EFI_IMAGE_NT_HEADERS64* NtHeaders = RtlpImageNtHeaderEx(ImageBase, ImageSize);
 	if (NtHeaders == NULL)
 		return Unknown;
 
