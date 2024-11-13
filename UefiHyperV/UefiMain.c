@@ -61,15 +61,6 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable
         return Status;
     }
 
-    //if (EFI_ERROR((Status = SetBootCurrentToWindowsBootmgr())))
-    //{
-    //    Print(L"ERORR: 2\n");
-    //    gBS->Stall(SEC_TO_MS(5));
-    //    return Status;
-    //}
-    //Print(L"Path -> %s\n", ConvertDevicePathToText(BootMgfwPath, FALSE, FALSE));
-    //Print(L"Type -> 0x%X\n", BootMgfwPath->Type);
-    //Print(L"SubType -> 0x%X\n", BootMgfwPath->SubType);
     if (EFI_ERROR((Status = gBS->LoadImage(TRUE, ImageHandle, BootMgfwPath, NULL, 0, &BootMgfwHandle))))
     {
         Print(L"ERORR3: %r\n", Status);
