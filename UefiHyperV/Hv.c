@@ -47,17 +47,13 @@ VOID MakeVoyagerData(PVOYAGER_T VoyagerData, VOID* HypervAlloc, UINT64 HypervAll
 	if (VmExitHandler)
 	{
 		UINT64 VmExitHandlerCall = ((UINT64)VmExitHandler) + 19; // + 19 bytes to -> call vmexit_c_handler
-		UINT64 VmExitHandlerCallRip = (UINT64)VmExitHandlerCall + 5; // + 5 bytes because "call vmexit_c_handler" is 5 bytes
-		UINT64 VmExitFunction = VmExitHandlerCallRip + *(INT32*)((UINT64)(VmExitHandlerCall + 1)); // + 1 to skip E8 (call) and read 4 bytes (RVA)
+		UINT64 VmExitFunction = RESOLVE_RVA(VmExitHandlerCall, 5, 1);
 		VoyagerData->VmExitHandlerRva = ((UINT64)GetExpEntry(PayLoadBase)) - (UINT64)VmExitFunction;
 	}
 	else // else AMD
 	{
-
-
 		VOID* VmExitHandlerCall = FindPattern(HypervAlloc, HypervAllocSize, AMD_VMEXIT_HANDLER_SIG, AMD_VMEXIT_HANDLER_MASK);
-		UINT64 VmExitHandlerCallRip = (UINT64)VmExitHandlerCall + 5; // + 5 bytes because "call vmexit_c_handler" is 5 bytes
-		UINT64 VmExitHandlerFunc = VmExitHandlerCallRip + *(INT32*)((UINT64)VmExitHandlerCall + 1); // + 1 to skip E8 (call) and read 4 bytes (RVA)
+		UINT64 VmExitHandlerFunc = RESOLVE_RVA(VmExitHandlerCall, 5, 1);
 		VoyagerData->VmExitHandlerRva = ((UINT64)GetExpEntry(PayLoadBase)) - VmExitHandlerFunc;
 	}
 }
@@ -69,7 +65,7 @@ VOID* HookVmExit(VOID* HypervBase, VOID* HypervSize, VOID* VmExitHook)
 	{
 		UINT64 VmExitHandlerCall = ((UINT64)VmExitHandler) + 19; // + 19 bytes to -> call vmexit_c_handler
 		UINT64 VmExitHandlerCallRip = (UINT64)VmExitHandlerCall + 5; // + 5 bytes because "call vmexit_c_handler" is 5 bytes
-		UINT64 VmExitFunction = VmExitHandlerCallRip + *(INT32*)((UINT64)(VmExitHandlerCall + 1)); // + 1 to skip E8 (call) and read 4 bytes (RVA)
+		UINT64 VmExitFunction = RESOLVE_RVA(VmExitHandlerCall, 5, 1);
 		INT64 NewVmExitRVA = ((INT64)VmExitHook) - VmExitHandlerCallRip;
 		*(INT32*)((UINT64)(VmExitHandlerCall + 1)) = (INT32)NewVmExitRVA;
 		return (VOID*)(VmExitFunction);
@@ -78,7 +74,7 @@ VOID* HookVmExit(VOID* HypervBase, VOID* HypervSize, VOID* VmExitHook)
 	{
 		VOID* VmExitHandlerCall = FindPattern(HypervBase, (UINT64)HypervSize, AMD_VMEXIT_HANDLER_SIG, AMD_VMEXIT_HANDLER_MASK);
 		UINT64 VmExitHandlerCallRip = ((UINT64)VmExitHandlerCall) + 5; // + 5 bytes to next instructions address...
-		UINT64 VmExitHandlerFunction = VmExitHandlerCallRip + *(INT32*)(((UINT64)VmExitHandlerCall) + 1); // + 1 to skip E8 (call) and read 4 bytes (RVA)
+		UINT64 VmExitHandlerFunction = RESOLVE_RVA(VmExitHandlerCall, 5, 1);
 		INT64 NewVmExitHandlerRVA = ((INT64)VmExitHook) - VmExitHandlerCallRip;
 		*(INT32*)((UINT64)VmExitHandlerCall + 1) = (INT32)NewVmExitHandlerRVA;
 		return (VOID*)(VmExitHandlerFunction);
