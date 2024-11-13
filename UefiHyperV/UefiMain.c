@@ -9,6 +9,8 @@
 #include "ExpShell.h"
 #include <intrin.h>
 
+#include "FileSystem/FileSystem.h"
+
 const UINT32 _gUefiDriverRevision = 0x200;
 extern CHAR8* gEfiCallerBaseName = "Bootloader";
 
@@ -43,6 +45,7 @@ EFI_STATUS EFIAPI UefiUnload(EFI_HANDLE ImageHandle)
 EFI_STATUS EFIAPI UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable)
 {
     EFI_STATUS Status = EFI_DEVICE_ERROR;
+
     EFI_HANDLE BootMgfwHandle = NULL;
     EFI_DEVICE_PATH* BootMgfwPath = NULL;
 
@@ -54,7 +57,7 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable
         return Status;
     }
 
-    if (EFI_ERROR((Status = GetBootMgfwPath(/*Index,*/ &BootMgfwPath))))
+    if (EFI_ERROR((Status = GetBootMgfwPath(&BootMgfwPath))))
     {
         Print(L"ERORR: 1\n");
         gBS->Stall(SEC_TO_MS(5));

@@ -9,6 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="Файлы заголовков\FileSystem">
+      <UniqueIdentifier>{84ed0267-7044-4822-ac54-4c3623b9d87e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\FileSystem">
+      <UniqueIdentifier>{f4170920-8e92-4c1b-b0e8-18426ba8852f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UefiMain.c">
@@ -31,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="Exploit.c">
       <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystem\FileSystem.c">
+      <Filter>Исходные файлы\FileSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -57,6 +66,9 @@
     </ClInclude>
     <ClInclude Include="ExpShell.h">
       <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystem\FileSystem.h">
+      <Filter>Файлы заголовков\FileSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
