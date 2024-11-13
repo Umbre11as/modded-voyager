@@ -217,9 +217,10 @@ static EFI_STATUS EFIAPI ArchStartBootApplicationHook(VOID* AppEntry, VOID* Imag
 	VOID* LdrLoadImage = GetExport(ImageBase, "BlLdrLoadImage");
 	VOID* ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, ALLOCATE_IMAGE_BUFFER_SIG, ALLOCATE_IMAGE_BUFFER_MASK);
 	if (!ImgAllocateImageBuffer)
-	{
 		ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, "\xE8\x00\x00\x00\x00\x4C\x8B\x6D\x60\x45\x33\xC9\x8B\xF8\x85\xC0", "x????xxxxxxxxxxx");
-	}
+	if (!ImgAllocateImageBuffer)
+		ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, "\xE8\x00\x00\x00\x00\x48\x8B\x74\x24\x00\x8B\xD8\x45\x33\xC9", "x????xxxx?xxxxx");
+	
 	MakeInlineHook(&WinLoadImageShitHook, LdrLoadImage, &BlLdrLoadImage, TRUE);
 	MakeInlineHook(&WinLoadAllocateImageHook, (VOID*)(RESOLVE_RVA(ImgAllocateImageBuffer, 5, 1)), &BlImgAllocateImageBuffer, TRUE);
 	return ((IMG_ARCH_START_BOOT_APPLICATION)BootMgfwShitHook.Address)(AppEntry, ImageBase, ImageSize, BootOption, ReturnArgs);
