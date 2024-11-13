@@ -42,7 +42,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY
 
 // taken from umap (btbd)
 BOOLEAN CheckMask(CHAR8* base, CHAR8* pattern, CHAR8* mask);
-VOID* FindPattern(CHAR8* base, UINTN size, CHAR8* pattern, CHAR8* mask);
+VOID* FindPattern(CHAR8* base, UINTN size, const CHAR8* pattern);
 VOID* GetExport(UINT8* ModuleBase, CHAR8* export);
 VOID MemCopy(VOID* dest, VOID* src, UINTN size);
 VOID* MemSet(VOID* dest, int val, UINT32 len);

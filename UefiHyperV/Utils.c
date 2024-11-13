@@ -2,7 +2,7 @@
 #include <Library/UefiLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
-#include <IndustryStandard/PeImage.h>
+#include <Library/UefiBootServicesTableLib.h>
 #include <Guid/GlobalVariable.h>
 #include "PeStructs.h"
 #include "Utils.h"
@@ -30,24 +30,51 @@ UINT16 BuildNumber = 0;
 #define LOBYTE(w)					((UINT8)(((UINTN)(w)) & 0xff))
 #define HIBYTE(w)					((UINT8)((((UINTN)(w)) >> 8) & 0xff))
 
-BOOLEAN CheckMask(CHAR8* base, CHAR8* pattern, CHAR8* mask)
-{
-	for (; *mask; ++base, ++pattern, ++mask)
-		if (*mask == 'x' && *base != *pattern)
-			return FALSE;
+#define HEX_CHAR_TO_BYTE(character) (character >= '0' && character <= '9' ? character - '0' : character >= 'A' && character <= 'F' ? character - 'A' + 10 : character >= 'a' && character <= 'f' ? character - 'a' + 10 : 0)
+#define GET_BYTE(a, b) (HEX_CHAR_TO_BYTE(a) << 4 | HEX_CHAR_TO_BYTE(b))
 
-	return TRUE;
-}
-
-VOID* FindPattern(CHAR8* base, UINTN size, CHAR8* pattern, CHAR8* mask)
+VOID* FindPattern(CHAR8* base, UINTN size, const CHAR8* pattern)
 {
-	size -= AsciiStrLen(mask);
-	for (UINTN i = 0; i <= size; ++i)
-	{
-		VOID* addr = &base[i];
-		if (CheckMask(addr, pattern, mask))
-			return addr;
+	UINTN patternLength = AsciiStrLen(pattern);
+
+	UINTN cursor = 0;
+	UINT8* bytes = NULL;
+	gBS->AllocatePool(EfiReservedMemoryType, patternLength * 2, (VOID**) &bytes);
+
+	for (UINTN i = 0; i < patternLength; i++) {
+		if (pattern[i] == '\?') {
+			bytes[cursor++] = 0xFF;
+			if (patternLength > i + 1 && pattern[i + 1] == '\?')
+				i++;
+
+			i++;
+			continue;
+		}
+
+		bytes[cursor++] = GET_BYTE(pattern[i], pattern[i + 1]);
+		i += 2;
 	}
+
+	UINT64 start = (UINT64)base;
+	UINT64 end = start + size;
+
+	for (UINT64 address = start; address < end; address++) {
+		for (UINTN i = 0; i < cursor; i++) {
+			UINT8 patternByte = bytes[i];
+			UINT8 moduleByte = *(UINT8*)(address + i);
+			if (patternByte == 0xFF) {
+				i++;
+				continue;
+			}
+
+			if (patternByte != moduleByte)
+				break;
+
+			if (i == cursor - 1)
+				return (VOID*)address;
+		}
+	}
+
 	return NULL;
 }
 

@@ -43,7 +43,7 @@ VOID MakeVoyagerData(PVOYAGER_T VoyagerData, VOID* HypervAlloc, UINT64 HypervAll
 	VoyagerData->ModuleBase = (UINT64)PayLoadBase;
 	VoyagerData->ModuleSize = PayLoadSize;
 
-	VOID* VmExitHandler = FindPattern(HypervAlloc, HypervAllocSize, INTEL_VMEXIT_HANDLER_SIG, INTEL_VMEXIT_HANDLER_MASK);
+	VOID* VmExitHandler = FindPattern(HypervAlloc, HypervAllocSize, INTEL_VMEXIT_HANDLER_SIG);
 	if (VmExitHandler)
 	{
 		UINT64 VmExitHandlerCall = ((UINT64)VmExitHandler) + 19; // + 19 bytes to -> call vmexit_c_handler
@@ -52,7 +52,7 @@ VOID MakeVoyagerData(PVOYAGER_T VoyagerData, VOID* HypervAlloc, UINT64 HypervAll
 	}
 	else // else AMD
 	{
-		VOID* VmExitHandlerCall = FindPattern(HypervAlloc, HypervAllocSize, AMD_VMEXIT_HANDLER_SIG, AMD_VMEXIT_HANDLER_MASK);
+		VOID* VmExitHandlerCall = FindPattern(HypervAlloc, HypervAllocSize, AMD_VMEXIT_HANDLER_SIG);
 		UINT64 VmExitHandlerFunc = RESOLVE_RVA(VmExitHandlerCall, 5, 1);
 		VoyagerData->VmExitHandlerRva = ((UINT64)GetExpEntry(PayLoadBase)) - VmExitHandlerFunc;
 	}
@@ -60,7 +60,7 @@ VOID MakeVoyagerData(PVOYAGER_T VoyagerData, VOID* HypervAlloc, UINT64 HypervAll
 
 VOID* HookVmExit(VOID* HypervBase, VOID* HypervSize, VOID* VmExitHook)
 {
-	VOID* VmExitHandler = FindPattern(HypervBase, (UINT64)HypervSize, INTEL_VMEXIT_HANDLER_SIG, INTEL_VMEXIT_HANDLER_MASK);
+	VOID* VmExitHandler = FindPattern(HypervBase, (UINT64)HypervSize, INTEL_VMEXIT_HANDLER_SIG);
 	if (VmExitHandler)
 	{
 		UINT64 VmExitHandlerCall = ((UINT64)VmExitHandler) + 19; // + 19 bytes to -> call vmexit_c_handler
@@ -72,7 +72,7 @@ VOID* HookVmExit(VOID* HypervBase, VOID* HypervSize, VOID* VmExitHook)
 	}
 	else // else AMD
 	{
-		VOID* VmExitHandlerCall = FindPattern(HypervBase, (UINT64)HypervSize, AMD_VMEXIT_HANDLER_SIG, AMD_VMEXIT_HANDLER_MASK);
+		VOID* VmExitHandlerCall = FindPattern(HypervBase, (UINT64)HypervSize, AMD_VMEXIT_HANDLER_SIG);
 		UINT64 VmExitHandlerCallRip = ((UINT64)VmExitHandlerCall) + 5; // + 5 bytes to next instructions address...
 		UINT64 VmExitHandlerFunction = RESOLVE_RVA(VmExitHandlerCall, 5, 1);
 		INT64 NewVmExitHandlerRVA = ((INT64)VmExitHook) - VmExitHandlerCallRip;

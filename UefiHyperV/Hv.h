@@ -1,10 +1,8 @@
 #pragma once
 
-#define INTEL_VMEXIT_HANDLER_SIG "\x65\xC6\x04\x25\x6D\x00\x00\x00\x00\x48\x8B\x4C\x24\x00\x48\x8B\x54\x24\x00\xE8\x00\x00\x00\x00\xE9" // 65 C6 04 25 6D ?? ?? ?? ?? 48 8B 4C 24 ?? 48 8B 54 24 ?? E8 ?? ?? ?? ?? E9
-#define INTEL_VMEXIT_HANDLER_MASK "xxxxxxxxxxxxx?xxxx?x????x"
+#define INTEL_VMEXIT_HANDLER_SIG "65 C6 04 25 6D ?? ?? ?? ?? 48 8B 4C 24 ?? 48 8B 54 24 ?? E8 ?? ?? ?? ?? E9"
 
-#define AMD_VMEXIT_HANDLER_SIG "\xE8\x00\x00\x00\x00\x48\x89\x04\x24\xE9"
-#define AMD_VMEXIT_HANDLER_MASK "x????xxxxx"
+#define AMD_VMEXIT_HANDLER_SIG "E8 ?? ?? ?? ?? 48 89 04 24 E9"
 
 #pragma pack(push, 1)
 typedef struct _VOYAGER_T

@@ -190,7 +190,7 @@ EFI_STATUS EFIAPI InstallBootMgfwHooks(EFI_HANDLE ImageHandle)
 	if (EFI_ERROR(Result = gBS->HandleProtocol(ImageHandle, &gEfiLoadedImageProtocolGuid, (VOID**)&BootMgfw)))
 		return Result;
 
-	VOID* ArchStartBootApplication = FindPattern((CHAR8*)BootMgfw->ImageBase, BootMgfw->ImageSize, START_BOOT_APPLICATION_SIG, START_BOOT_APPLICATION_MASK);
+	VOID* ArchStartBootApplication = FindPattern((CHAR8*)BootMgfw->ImageBase, BootMgfw->ImageSize, START_BOOT_APPLICATION_SIG);
 	if (!ArchStartBootApplication)
 		return EFI_NOT_FOUND;
 
@@ -215,11 +215,11 @@ static EFI_STATUS EFIAPI ArchStartBootApplicationHook(VOID* AppEntry, VOID* Imag
 	gBS->ExitBootServices = ExitBootServicesHook;
 
 	VOID* LdrLoadImage = GetExport(ImageBase, "BlLdrLoadImage");
-	VOID* ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, ALLOCATE_IMAGE_BUFFER_SIG, ALLOCATE_IMAGE_BUFFER_MASK);
+	VOID* ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, ALLOCATE_IMAGE_BUFFER_SIG);
 	if (!ImgAllocateImageBuffer)
-		ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, "\xE8\x00\x00\x00\x00\x4C\x8B\x6D\x60\x45\x33\xC9\x8B\xF8\x85\xC0", "x????xxxxxxxxxxx");
+		ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, "E8 ?? ?? ?? ?? 4C 8B 6D 60 45 33 C9 8B F8 85 C0");
 	if (!ImgAllocateImageBuffer)
-		ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, "\xE8\x00\x00\x00\x00\x48\x8B\x74\x24\x00\x8B\xD8\x45\x33\xC9", "x????xxxx?xxxxx");
+		ImgAllocateImageBuffer = FindPattern((CHAR8*)ImageBase, ImageSize, "E8 00 00 00 00 48 8B 74 24 00 8B D8 45 33 C9");
 	
 	MakeInlineHook(&WinLoadImageShitHook, LdrLoadImage, &BlLdrLoadImage, TRUE);
 	MakeInlineHook(&WinLoadAllocateImageHook, (VOID*)(RESOLVE_RVA(ImgAllocateImageBuffer, 5, 1)), &BlImgAllocateImageBuffer, TRUE);

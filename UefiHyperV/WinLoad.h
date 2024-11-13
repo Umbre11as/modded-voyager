@@ -1,8 +1,7 @@
 #pragma once
 
 // 2004-1511 winload.BlImgAllocateImageBuffer E8 ?? ?? ?? ?? 8B D8 85 C0 78 ?? 21 7C 24 ?? 45 33 C0
-#define ALLOCATE_IMAGE_BUFFER_SIG "\xE8\x00\x00\x00\x00\x8B\xD8\x85\xC0\x78\x00\x21\x7C\x24\x00\x45\x33\xC0"
-#define ALLOCATE_IMAGE_BUFFER_MASK "x????xxxxx?xxx?xxx"
+#define ALLOCATE_IMAGE_BUFFER_SIG "E8 ?? ?? ?? ?? 8B D8 85 C0 78 ?? 21 7C 24 ?? 45 33 C0"
 
 extern INLINE_HOOK WinLoadImageShitHook;
 extern INLINE_HOOK WinLoadAllocateImageHook;
