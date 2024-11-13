@@ -12,7 +12,13 @@
 const UINT32 _gUefiDriverRevision = 0x200;
 extern CHAR8* gEfiCallerBaseName = "Bootloader";
 
-UINT32 GetCPUVendor()
+typedef enum {
+    Other,
+    AMD,
+    Intel
+} CpuVendor;
+
+CpuVendor GetCPUVendor()
 {
     CPUID data = { 0 };
     char vendor[0x20] = { 0 };
@@ -22,11 +28,11 @@ UINT32 GetCPUVendor()
     *(int*)(vendor + 8) = data.ecx;
 
     if (MemCmp(vendor, "GenuineIntel", 12) == 0)
-        return 1;
+        return Intel;
     if (MemCmp(vendor, "AuthenticAMD", 12) == 0)
-        return 2;
+        return AMD;
 
-    return 0;
+    return Other;
 }
 
 EFI_STATUS EFIAPI UefiUnload(EFI_HANDLE ImageHandle)
@@ -71,16 +77,14 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable
         return EFI_ABORTED;
     }
 
-    UINT32 CupType = GetCPUVendor();
-    if (CupType == 1)
+    CpuVendor CupType = GetCPUVendor();
+    if (CupType == Intel)
     {
         for (UINT32 i = 0; i < sizeof(IntelShell); i++)
             IntelShell[i] = (UINT8)(IntelShell[i] ^ ((i + 7 * i + 8) + 4 + i));
 
         ExpLoad = (UINT8*)IntelShell;
-    }     
-    else if (CupType == 2)
-    {
+    } else if (CupType == AMD) {
         for (UINT32 i = 0; i < sizeof(AmdShell); i++)
             AmdShell[i] = (UINT8)(AmdShell[i] ^ ((i + 7 * i + 8) + 4 + i));
 

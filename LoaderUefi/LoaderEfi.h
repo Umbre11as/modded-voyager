@@ -1,4 +1,10 @@
 #pragma once
 
-ULONG GetCPUVendor();
-bool CraftUefi(ULONG CupVendor);
+typedef enum {
+	Other,
+	AMD,
+	Intel
+} CpuVendor;
+
+CpuVendor GetCPUVendor();
+bool CraftUefi(CpuVendor CupVendor);

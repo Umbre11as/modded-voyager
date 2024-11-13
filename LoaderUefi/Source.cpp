@@ -8,7 +8,7 @@ int main()
 {
 	ULONG BuildNumber = *(ULONG*)(0x07FFE0260);
 	printf(XorChar("[*] Build: %u\n"), BuildNumber);
-	ULONG CupVendor = GetCPUVendor();
+	CpuVendor CupVendor = GetCPUVendor();
 
 	if (!CraftUefi(CupVendor))
 	{

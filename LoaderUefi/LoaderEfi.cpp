@@ -20,7 +20,7 @@
 
 #define SIZEOF_ARRAY(_Array)     (sizeof(_Array)/sizeof(_Array[0]))
 
-ULONG GetCPUVendor()
+CpuVendor GetCPUVendor()
 {
 	CPUID data = {};
 	char vendor[0x20] = {};
@@ -30,11 +30,11 @@ ULONG GetCPUVendor()
 	*(int*)(vendor + 8) = data.ecx;
 
 	if (memcmp(vendor, CRY_XORSTR_LIGHT("GenuineIntel"), 12) == 0)
-		return 1;
+		return CpuVendor::Intel;
 	if (memcmp(vendor, CRY_XORSTR_LIGHT("AuthenticAMD"), 12) == 0)
-		return 2;
+		return CpuVendor::AMD;
 
-	return 0;
+	return CpuVendor::Other;
 }
 
 bool IsHypervisorPresent(const char* HyperVisorName)
@@ -257,7 +257,7 @@ bool EditEfiVolume(ULONG DiskNumber)
 	return true;
 }
 
-bool CraftUefi(ULONG CupVendor)
+bool CraftUefi(CpuVendor CupVendor)
 {
 	DWORD Byte = 0;
 	WCHAR fname[32];
@@ -332,7 +332,7 @@ bool CraftUefi(ULONG CupVendor)
 
 			if (!IsHypervisorPresent(CRY_XORSTR_LIGHT("Microsoft Hv")))
 			{
-				if (CupVendor == 1)
+				if (CupVendor == CpuVendor::Intel)
 				{
 					BypassKva();
 					system(CRY_XORSTR_LIGHT("BCDEDIT /Set {current} hypervisorlaunchtype auto"));
