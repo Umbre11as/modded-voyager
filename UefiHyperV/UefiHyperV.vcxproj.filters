@@ -64,9 +64,6 @@
     <ClInclude Include="Exploit.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="ExpShell.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="FileSystem\FileSystem.h">
       <Filter>Файлы заголовков\FileSystem</Filter>
     </ClInclude>

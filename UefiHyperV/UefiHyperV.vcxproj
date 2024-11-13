@@ -86,7 +86,6 @@
   <ItemGroup>
     <ClInclude Include="BootMgfw.h" />
     <ClInclude Include="Exploit.h" />
-    <ClInclude Include="ExpShell.h" />
     <ClInclude Include="FileSystem\FileSystem.h" />
     <ClInclude Include="Hv.h" />
     <ClInclude Include="InlineHook.h" />
